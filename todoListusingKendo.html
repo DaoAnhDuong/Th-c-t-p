@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý công việc</title>
+  <!-- Thêm các tài liệu Kendo UI -->
+  <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2021.2.616/styles/kendo.common.min.css">
+  <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2021.2.616/styles/kendo.rtl.min.css">
+  <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2021.2.616/styles/kendo.default.min.css">
+  <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2021.2.616/styles/kendo.mobile.all.min.css">
+  <link href="https://kendo.cdn.telerik.com/themes/6.6.0/default/default-main.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://kendo.cdn.telerik.com/2021.2.616/js/kendo.all.min.js"></script>
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h1>Quản lý công việc</h1>
+    <input type="text" class="form-control" id="form-control" placeholder="Nhập nội dung công việc">
+    <button type="submit" class="btn btn-primary" id='button-submit'>Thêm</button>
+    <div id="grid"></div>
+  </div>
+
+  <script>
+    var tasks = [];
+
+    $(document).ready(function () {
+      // Khởi tạo danh sách
+      var savedTasks = localStorage.getItem('tasks');
+      if (savedTasks) {
+        tasks = JSON.parse(savedTasks);
+      }
+      $("#grid").kendoGrid({
+        dataSource: {
+          data: tasks,
+          schema: {
+            model: {
+              fields: {
+                content: { type: "string" },
+                createdTime: { type: "string" }
+              }
+            }
+          },
+          
+        },
+        
+        height: 500,
+        scrollable: true,
+        sortable: true,
+        
+        pageable: {
+          input: true,
+          numeric: false
+        },
+        
+        columns: [
+          { field: "content", title: "Nội dung" , format: "{0:c}"},
+          { field: "createdTime", title: "Thời gian tạo" },
+          { command: [{ name: "edit", text: "Sửa", template: "<button class = 'k-grid-edit' style ='background-color: yellow'>Sửa</button>" }, { name: "destroy", text: "Xóa", template: "<button class = 'deleteBtn' style ='background-color: red'>Xóa</button>"}], title: "Chức năng" }
+        ],
+        editable: "inline",
+        
+      });
+      
+      $("#button-submit").css("background-color","blue");
+      
+      
+      // Hàm thêm mới
+      $('#button-submit').on('click', function () {
+        var inputContent = $('#form-control').val();
+        if (inputContent.trim() !== '') {
+          var currentTime = new Date().toLocaleString();
+          tasks.push({ content: inputContent, createdTime: currentTime })
+          
+          saveTasksToLocalStorage();
+          $('#form-control').val('');
+          var grid = $("#grid").data("kendoGrid");
+          grid.dataSource.read();
+        } else {
+          alert('Vui lòng nhập tên công việc!')
+        }
+      });
+      // Hàm sửa
+      $(document).on('click', '.k-grid-edit',function (e) {
+        var grid = $("#grid").data("kendoGrid");
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+        var index = grid.dataSource.indexOf(dataItem);
+        var task = tasks[index];
+        $('#form-control').val(task.content);
+        $('#button-submit').off('click').on('click', function () {
+          var editedContent = $('#form-control').val();
+          if (editedContent.trim() !== '') {
+            task.content = editedContent;
+            
+            $('#form-control').val('');
+            saveTasksToLocalStorage();
+            
+            grid.dataSource.read();
+            
+            $('#button-submit').off('click').on('click', function () {
+              if (inputContent.trim() !== '') {
+                var currentTime = new Date().toLocaleString();
+                task.push({ content: inputContent, createdTime: currentTime })
+                
+                $('#form-control').val('');
+              }
+            })
+          }
+        })
+      })
+      console.log(tasks)
+      // Hàm xóa
+      $(document).on('click', '.deleteBtn',function(e){
+        var grid = $("#grid").data("kendoGrid");
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+        var index = grid.dataSource.indexOf(dataItem);
+        tasks.splice(index,1);
+        saveTasksToLocalStorage();
+        grid.dataSource.read();
+      })
+      // Hàm lưu vào LocalStorage
+      function saveTasksToLocalStorage() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+    });
+  </script>
+</body>
+
+</html>

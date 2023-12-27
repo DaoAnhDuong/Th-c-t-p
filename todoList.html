@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <title>Todo List</title>
+  
+</head>
+
+<body>
+  <!--Create add-->
+  <div class="container mt-3">
+
+    <p>Mời bạn nhập thông tin:</p>
+
+    <div class="mb-3 mt-3">
+
+      <input type="text" class="form-control" id="form-control" placeholder="Nhập nội dung công việc">
+    </div>
+    <button type="submit" class="btn btn-primary" id='button-submit'>Thêm</button>
+
+  </div>
+
+  <!--Create table-->
+  <div class="container">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">STT</th>
+          <th scope="col">Nội Dung</th>
+          <th scope="col">Thời Gian Tạo</th>
+          <th scope="col">Chức Năng</th>
+        </tr>
+      </thead>
+      <tbody id="taskList"></tbody>
+    </table>
+  </div>
+  <script>
+
+    //Hàm hiển thị
+    var tasks = [];
+    function displayTasks() {
+      var taskListHtml = '';
+      tasks.forEach(function (task, index) {
+        taskListHtml += '<tr>';
+        taskListHtml += '<td>' + (index + 1) + '</td>';
+        taskListHtml += '<td>' + task.content + '</td>';
+        taskListHtml += '<td>' + task.createdTime + '</td>';
+        taskListHtml += '<td><button type="button" class="btn btn-sm btn-primary editBtn" data-index="' + index + '">Sửa</button>';
+        taskListHtml += ' <button type="button" class="btn btn-sm btn-danger deleteBtn" data-index="' + index + '">Xóa</button></td>';
+        taskListHtml += '</tr>';
+      });
+      $('#taskList').html(taskListHtml);
+    }
+    $(document).ready(function () {
+      displayTasks();
+      // Khởi tạo danh sách
+      var savedTasks = localStorage.getItem('tasks');
+      if (savedTasks) {
+        tasks = JSON.parse(savedTasks);
+        displayTasks();
+      }
+      // Hàm thêm mới
+      $('#button-submit').on('click', function () {
+        var inputContent = $('#form-control').val();
+        if (inputContent.trim() !== '') {
+          var currentTime = new Date().toLocaleString();
+          tasks.push({ content: inputContent, createdTime: currentTime })
+          displayTasks();
+          saveTasksToLocalStorage();
+          $('#form-control').val('');
+        } else {
+          alert('Vui lòng nhập tên công việc!')
+        }
+      });
+      // Hàm sửa
+      $(document).on('click', '.editBtn',function () {
+        var index = $(this).data('index');
+        var task = tasks[index];
+        $('#form-control').val(task.content);
+        $('#button-submit').off('click').on('click', function () {
+          var editedContent = $('#form-control').val();
+          if (editedContent.trim() !== '') {
+            task.content = editedContent;
+            displayTasks();
+            $('#form-control').val('');
+            saveTasksToLocalStorage();
+            $('#button-submit').off('click').on('click', function () {
+              if (inputContent.trim() !== '') {
+                var currentTime = new Date().toLocaleString();
+                task.push({ content: inputContent, createdTime: currentTime })
+                displayTasks();
+                $('#form-control').val('');
+              }
+            })
+          }
+        })
+      })
+      console.log(tasks)
+      // Hàm xóa
+      $(document).on('click', '.deleteBtn',function(){
+        var index = $(this).data('index');
+        tasks.splice(index,1);
+        saveTasksToLocalStorage();
+        displayTasks();
+      })
+      // Hàm lưu vào LocalStorage
+      function saveTasksToLocalStorage() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+
+    })
+
+  </script>
+</body>
+
+</html>
